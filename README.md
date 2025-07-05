@@ -25,6 +25,7 @@ Simple hash table implementation in C. This project is based on the [hash-table 
 └── src
     ├── hash_table.c
     ├── hash_table.h
+    ├── main.c
     ├── prime.c
     └── prime.h
 
