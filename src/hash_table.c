@@ -54,9 +54,26 @@ static size_t ht_hash(const char* str, const size_t a, const size_t num_buckets)
     return hash;
 }
 
-// Function to handle collisions (open addressing with double hashing)
+// Function to handle collisions (double hashing)
 static size_t ht_get_hash(const char* str, const size_t num_buckets, const size_t attempt) {
     const size_t hash_a = ht_hash(str, HT_PRIME1, num_buckets);
     const size_t hash_b = ht_hash(str, HT_PRIME2, num_buckets);
     return (hash_a + (attempt * (hash_b + 1))) % num_buckets;
 }
+
+// Insert a key-value pair into the hash table (open addressing with double hashing)
+void ht_insert(ht_hash_table* ht, const char* key, const char* value) {
+    ht_item* item = ht_new_item(key, value);
+    size_t index = ht_get_hash(key, ht->size, 0);
+    ht_item* cur_item = ht->items[index];
+    size_t attempt = 1;
+    while (cur_item != NULL) {
+        index = ht_get_hash(item->key, ht->size, attempt);
+        cur_item = ht->items[index];
+        ++attempt;
+    }
+    ht->items[index] = item;
+    ++(ht->count);
+}
+
+// Return the item's value if found otherwise return NULL
