@@ -86,8 +86,15 @@ void ht_insert(ht_hash_table* ht, const char* key, const char* value) {
     size_t attempt = 1;
 
     // Probe until we find an empty slot using double hashing algorithm
-    while (cur_item != NULL) {
-        index = ht_get_hash(item->key, ht->size, attempt);
+    while (cur_item != NULL && cur_item != &HT_DELETED_ITEM) {
+        // If key already exists in the table, update it the new value
+        if (strcmp(cur_item->key, key) == 0) {
+            ht_del_item(cur_item);
+            ht->items[index] = item;
+            return;
+        }
+
+        index = ht_get_hash(key, ht->size, attempt);
         cur_item = ht->items[index];
         ++attempt;
     }
@@ -110,8 +117,10 @@ char* ht_search(ht_hash_table* ht, const char* key) {
     // key isn't in the table. Return NULL. 
     // Otherwise, continue searching until the key-value pair is found
     while (item != NULL) {
-        if (strcmp(item->key, key) == 0) {
-            return item->value;
+        if (item != &HT_DELETED_ITEM) {
+            if (strcmp(item->key, key) == 0) {
+                return item->value;
+            }
         }
         index = ht_get_hash(key, ht->size, attempt);
         item = ht->items[index];
@@ -134,7 +143,7 @@ static ht_item HT_DELETED_ITEM = {NULL, NULL};
 
 void ht_delete(ht_hash_table* ht, const char* key) {
     // Compute the initial index using the primary hash function
-    int index = ht_get_hash(key, ht->size, 0);
+    size_t index = ht_get_hash(key, ht->size, 0);
 
     // Retrieve the item at that index
     ht_item* item = ht->items[index];
