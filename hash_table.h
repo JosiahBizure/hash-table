@@ -1,19 +1,14 @@
 #include <stdlib.h>
 
-/*
-    I leanred 'typedef' by making this struct!
-
-    'typedef' allows us to create aliases for types — both built-in and user-defined.
-    Here, we define an unnamed struct and simultaneously create an alias for it: ht_item.
-    This way, we can declare variables using 'ht_item' instead of 'struct { ... }'.
-*/
 typedef struct {
     char* key;
     char* value;
 } ht_item;
 
 /*
-    'items' is a pointer to an ht_item pointer — that is, an array of ht_item pointers.
+    This helped me understand double pointers a bit better.
+
+    'items' is a pointer to an ht_item pointer, meaning, an array of ht_item pointers.
     Each ht_item* in the array can point to an ht_item object located anywhere in memory 
     (stack, heap, or static storage). The pointer array itself may be contiguous,
     but the actual ht_item structs it points to can be scattered.
@@ -25,7 +20,7 @@ typedef struct {
 } ht_hash_table;
 
 /*
-    We can choose not to add function declarations to .h files if we want it to be
+    I'm choosing not to include the ht_item constructor / destructor logic to this file to keep it
     private / internal to the .c file. This prevents functionality from being accessible externally.
 */
 

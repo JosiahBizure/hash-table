@@ -6,6 +6,10 @@
 static const size_t HT_PRIME1 = 151;
 static const size_t HT_PRIME2 = 163;
 
+// Global sentinel item that represents a bucket which contains a deleted item
+// See ht_delete for description of why this is needed
+static ht_item HT_DELETED_ITEM = {NULL, NULL};
+
 // Constructs a new key-value pair. Duplicates strings onto the heap
 static ht_item* ht_new_item(const char* k, const char* v) {
     ht_item* new_item = malloc(sizeof(ht_item));
@@ -36,7 +40,7 @@ void ht_del_hash_table(ht_hash_table* ht) {
     ht_item* item = NULL; // We reassign in the next line so this should be safe
     for (size_t i = 0; i < ht->size; ++i) {
         item = ht->items[i];
-        if (item != NULL) ht_del_item(item);
+        if (item != NULL && item != &HT_DELETED_ITEM) { ht_del_item(item); }
     }
 
     free(ht->items);
@@ -135,11 +139,8 @@ char* ht_search(ht_hash_table* ht, const char* key) {
     is part of a collision chain. Removing it directly will break that chain.
     The solution I found is to create a global sentinel item which represents
     a bucket containing a deleted item and replace the target item with a pointer
-    to that global item. Super clever idea.
+    to that global item
 */
-
-// Global sentinel item that represents a bucket which contains a deleted item
-static ht_item HT_DELETED_ITEM = {NULL, NULL};
 
 void ht_delete(ht_hash_table* ht, const char* key) {
     // Compute the initial index using the primary hash function
@@ -150,14 +151,13 @@ void ht_delete(ht_hash_table* ht, const char* key) {
     size_t attempt = 1;
 
     while (item != NULL) {
-        if (item != &HT_DELETED_ITEM) {
-            if (strcmp(item->key, key) == 0) {
-                ht_del_item(item);
-                ht->items[index] = &HT_DELETED_ITEM;
-                --(ht->count);
-                return;
-            }
+        if (item != &HT_DELETED_ITEM && strcmp(item->key, key) == 0) {
+            ht_del_item(item); // only safe if not the sentinel
+            ht->items[index] = &HT_DELETED_ITEM;
+            --(ht->count);
+            return;
         }
+
         index = ht_get_hash(key, ht->size, attempt);
         item = ht->items[index];
         ++attempt;
